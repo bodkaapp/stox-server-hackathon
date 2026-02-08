@@ -1,0 +1,44 @@
+{
+  "name": "stox-hono",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/app",
+  "remoteUser": "root",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "moby": false
+    },
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": "true",
+      "installOhMyZsh": "true",
+      "installOhMyZshConfig": "false"
+    }
+  },
+  "mounts": [
+    "source=${localEnv:HOME}/.config/gcloud,target=/root/.config/gcloud,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.gemini,target=/root/.gemini,type=bind,consistency=cached"
+  ],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true,
+        "terminal.integrated.defaultProfile.linux": "zsh",
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "prisma.prisma",
+        "GitHub.copilot",
+        "wraith13.unsaved-files-vscode",
+        "ms-azuretools.vscode-containers",
+        "google.gemini-cli-vscode-ide-companion",
+        "ms-ossdata.vscode-pgsql"
+      ]
+    }
+  },
+  "forwardPorts": [18788, 18787],
+  "postCreateCommand": "cp /workspaces/app/.devcontainer/zsh/.zshrc /root/.zshrc"
+}

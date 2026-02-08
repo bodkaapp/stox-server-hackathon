@@ -1,0 +1,12 @@
+{
+  "workbench.preferredDarkColorTheme": "Monokai",
+  "workbench.colorTheme": "Monokai",
+  "workbench.preferredHighContrastColorTheme": "Visual Studio Light",
+  "workbench.preferredLightColorTheme": "Visual Studio Light",
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "github.copilot.chat.notebook.enhancedNextEditSuggestions.enabled": true,
+  "workbench.tree.indent": 16,
+  "workbench.colorCustomizations": {
+    "tab.activeBorder": "#0cf388" // アクティブタブの下部ボーダー
+  }
+}

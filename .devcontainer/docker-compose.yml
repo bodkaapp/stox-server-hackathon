@@ -1,0 +1,15 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspaces/app:cached
+      - ../tmp:/workspaces/app/tmp:cached
+      - ../db/dump:/workspaces/app/db/dump:cached
+      - zsh-history:/root/.zsh # zshの履歴ファイルを保存するディレクトリをマウント
+    user: root
+    command: /bin/sh -c "while sleep 1000; do :; done"
+
+volumes:
+  zsh-history:

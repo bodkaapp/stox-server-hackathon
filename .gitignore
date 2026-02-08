@@ -1,0 +1,13 @@
+# pnpm dependencies
+node_modules
+/pnpm-lock.yaml  # コミットする必要があるため通常は含めないが、誤って無視しないよう注意
+.pnpm-store
+
+# Debug logs
+pnpm-debug.log*
+
+# Other common ignored files
+.DS_Store
+dist
+build
+.env*
