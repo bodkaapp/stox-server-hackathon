@@ -1,17 +1,35 @@
 services:
-  my-app:
+  stox-app:
     build:
-      context: ./my-app
+      context: ./app
       dockerfile: Dockerfile
       target: builder
     ports:
-      - "18788:8080"
-    command: npm run dev
+      - "18787:3000"
+    command: pnpm run dev
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=myuser
+      - DB_PASSWORD=mypassword
+      - DB_NAME=mydatabase
+      - PGSSLMODE=disable
     volumes:
-      - ~/.config/gcloud:/root/.config/gcloud:ro
-      - ./my-app:/app
-      - /app/node_modules
-    env_file:
-      - .env.local
+      - ./app:/app
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:

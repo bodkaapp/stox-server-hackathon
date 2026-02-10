@@ -11,3 +11,5 @@ pnpm-debug.log*
 dist
 build
 .env*
+
+tmp/
