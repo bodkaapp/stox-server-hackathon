@@ -1,7 +1,7 @@
 services:
   stox-app:
     build:
-      context: ./app
+      context: ./stox-app
       dockerfile: Dockerfile
       target: builder
     ports:
@@ -15,7 +15,21 @@ services:
       - DB_NAME=mydatabase
       - PGSSLMODE=disable
     volumes:
-      - ./app:/app
+      - ./stox-app:/app
+    depends_on:
+      - db
+
+  admin-app:
+    build:
+      context: .
+      dockerfile: admin-app/Dockerfile
+      target: builder # 開発時はbuilderステージまでを利用
+    ports:
+      - "18788:3000"
+    command: sh -c "npm install && npm run dev"
+    volumes:
+      - ./admin-app:/app
+      - /app/.next
     depends_on:
       - db
 
