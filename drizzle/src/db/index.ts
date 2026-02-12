@@ -4,10 +4,6 @@ import { Pool } from "pg";
 import * as schema from "./schema";
 import "dotenv/config";
 
-// if (!process.env.DB_HOST) {
-//   throw new Error("DB_HOST environment variable is not set");
-// }
-
 const pool = new Pool({
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
