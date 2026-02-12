@@ -1,0 +1,4 @@
+packages:
+  - 'admin-app'
+  - 'stox-app'
+  - 'drizzle'

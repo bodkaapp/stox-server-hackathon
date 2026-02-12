@@ -13,7 +13,14 @@ RUN npm install
 FROM deps AS builder
 COPY --from=deps /app/node_modules ./node_modules
 
-COPY admin-app .
+# Copy specific files and directories
+COPY admin-app/app ./app
+COPY admin-app/public ./public
+COPY admin-app/next.config.ts ./next.config.ts
+COPY admin-app/postcss.config.mjs ./postcss.config.mjs
+COPY admin-app/eslint.config.mjs ./eslint.config.mjs
+COPY admin-app/tsconfig.json ./tsconfig.json
+COPY drizzle ./drizzle
 
 RUN npm run build
 

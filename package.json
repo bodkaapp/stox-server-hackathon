@@ -1,0 +1,10 @@
+{
+  "name": "root",
+  "private": true,
+  "workspaces": [
+    "admin-app",
+    "stox-app",
+    "drizzle"
+  ],
+  "packageManager": "pnpm@9.1.4"
+}

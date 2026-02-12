@@ -1,0 +1,24 @@
+{
+  "name": "drizzle",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/db/index.js",
+  "types": "dist/db/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "db:push": "drizzle-kit push:pg",
+    "db:migrate": "drizzle-kit migrate:pg",
+    "db:studio": "drizzle-kit studio --verbose"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.1",
+    "pg": "^8.18.0",
+    "dotenv": "^17.2.4"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.16.0",
+    "drizzle-kit": "^0.23.0",
+    "typescript": "^5.8.3"
+  }
+}
