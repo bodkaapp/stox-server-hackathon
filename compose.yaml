@@ -10,12 +10,7 @@ services:
     env_file:
       - .env
     environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=myuser
-      - DB_PASSWORD=mypassword
-      - DB_NAME=mydatabase
-      - PGSSLMODE=disable
+      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/mydatabase?sslmode=disable
     volumes:
       - ./stox-app:/app
       - /app/node_modules
@@ -41,12 +36,7 @@ services:
     env_file:
       - .env
     environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=myuser
-      - DB_PASSWORD=mypassword
-      - DB_NAME=mydatabase
-      - PGSSLMODE=disable
+      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/mydatabase?sslmode=disable
     volumes:
       - ./admin-app:/app
       - /app/.next

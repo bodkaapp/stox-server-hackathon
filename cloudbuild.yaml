@@ -1,0 +1,75 @@
+steps:
+  # ---------------------------------
+  # Build and Deploy stox-app
+  # ---------------------------------
+  - name: "gcr.io/cloud-builders/docker"
+    id: "Build stox-app image"
+    args:
+      - "build"
+      - "-t"
+      - "asia-northeast1-docker.pkg.dev/$PROJECT_ID/stox-cloud-run-images/stox-app:$COMMIT_SHA"
+      - "."
+    dir: "stox-app"
+
+  - name: "gcr.io/cloud-builders/docker"
+    id: "Push stox-app image"
+    args:
+      - "push"
+      - "asia-northeast1-docker.pkg.dev/$PROJECT_ID/stox-cloud-run-images/stox-app:$COMMIT_SHA"
+    waitFor: ["Build stox-app image"]
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    id: "Deploy stox-app to Cloud Run"
+    entrypoint: gcloud
+    args:
+      - "run"
+      - "deploy"
+      - "stox-app"
+      - "--image=asia-northeast1-docker.pkg.dev/$PROJECT_ID/stox-cloud-run-images/stox-app:$COMMIT_SHA"
+      - "--region=asia-northeast1"
+      - "--platform=managed"
+      - "--allow-unauthenticated"
+      - "--project=$PROJECT_ID"
+      - "--add-cloudsql-instances=point-shopping-list:asia-northeast1:stox-server-db"
+      - "--set-secrets=DATABASE_URL=stox-DATABASE_URL_SECRET:latest"
+    waitFor: ["Push stox-app image"]
+
+  # ---------------------------------
+  # Build and Deploy admin-app
+  # ---------------------------------
+  - name: "gcr.io/cloud-builders/docker"
+    id: "Build admin-app image"
+    args:
+      - "build"
+      - "-t"
+      - "asia-northeast1-docker.pkg.dev/$PROJECT_ID/stox-cloud-run-images/admin-app:$COMMIT_SHA"
+      - "."
+    dir: "admin-app"
+
+  - name: "gcr.io/cloud-builders/docker"
+    id: "Push admin-app image"
+    args:
+      - "push"
+      - "asia-northeast1-docker.pkg.dev/$PROJECT_ID/stox-cloud-run-images/admin-app:$COMMIT_SHA"
+    waitFor: ["Build admin-app image"]
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    id: "Deploy admin-app to Cloud Run"
+    entrypoint: gcloud
+    args:
+      - "run"
+      - "deploy"
+      - "admin-app"
+      - "--image=asia-northeast1-docker.pkg.dev/$PROJECT_ID/stox-cloud-run-images/admin-app:$COMMIT_SHA"
+      - "--region=asia-northeast1"
+      - "--platform=managed"
+      - "--allow-unauthenticated"
+      - "--project=$PROJECT_ID"
+      - "--add-cloudsql-instances=point-shopping-list:asia-northeast1:stox-server-db"
+      - "--set-secrets=DATABASE_URL=stox-DATABASE_URL_SECRET:latest"
+    waitFor: ["Push admin-app image"]
+
+# 作成したイメージをCloud Buildのビルド結果に含めます
+images:
+  - "asia-northeast1-docker.pkg.dev/$PROJECT_ID/stox-cloud-run-images/stox-app:$COMMIT_SHA"
+  - "asia-northeast1-docker.pkg.dev/$PROJECT_ID/stox-cloud-run-images/admin-app:$COMMIT_SHA"
