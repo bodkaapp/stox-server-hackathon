@@ -50,7 +50,7 @@ COPY --from=builder /app/public ./public
 # but keeping it for now if there are any runtime-specific configurations.
 # COPY --from=builder /app/next.config.ts ./next.config.ts
 
-EXPOSE 3000
+EXPOSE 8080
 
 ENV NODE_ENV=production
 USER node
