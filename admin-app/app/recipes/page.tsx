@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../AuthProvider";
 
 type Recipe = {
   id: number;
@@ -11,16 +13,27 @@ type Recipe = {
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalRecipes, setTotalRecipes] = useState(0);
   const itemsPerPage = 10;
   const totalPages = Math.ceil(totalRecipes / itemsPerPage);
 
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
   useEffect(() => {
     async function fetchRecipes() {
-      setLoading(true);
+      if (!user) return; // Do not fetch if user is not authenticated
+
+      setDataLoading(true);
       setError(null);
       try {
         const response = await fetch(
@@ -35,18 +48,18 @@ export default function RecipesPage() {
       } catch (error: any) {
         setError(error.message);
       } finally {
-        setLoading(false);
+        setDataLoading(false);
       }
     }
 
     fetchRecipes();
-  }, [currentPage]);
+  }, [currentPage, user]); // Add user to dependency array
 
-  if (loading) {
+  if (authLoading || dataLoading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
         <h1 className="text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-          Loading Recipes...
+          Loading...
         </h1>
       </div>
     );
