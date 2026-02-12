@@ -31,6 +31,7 @@ steps:
       - "--platform=managed"
       - "--allow-unauthenticated"
       - "--project=$PROJECT_ID"
+      - "--service-account=stox-server@point-shopping-list.iam.gserviceaccount.com"
       - "--add-cloudsql-instances=point-shopping-list:asia-northeast1:stox-server-db"
       - "--set-secrets=DATABASE_URL=stox-DATABASE_URL_SECRET:latest"
     waitFor: ["Push stox-app image"]
@@ -62,11 +63,12 @@ steps:
       - "run"
       - "deploy"
       - "admin-app"
-      - "--image=asia-northeast1-docker.pkg.dev/$PROJECT_ID/cloud-run-images/admin-app:$COMMIT_SHA"
+      - "--image=asia-northeast1-docker.pkg.dev/$PROJECT_ID/stox-cloud-run-images/admin-app:$COMMIT_SHA"
       - "--region=asia-northeast1"
       - "--platform=managed"
       - "--allow-unauthenticated"
       - "--project=$PROJECT_ID"
+      - "--service-account=stox-server@point-shopping-list.iam.gserviceaccount.com"
       - "--add-cloudsql-instances=point-shopping-list:asia-northeast1:stox-server-db"
       - "--set-secrets=DATABASE_URL=stox-DATABASE_URL_SECRET:latest"
     waitFor: ["Push admin-app image"]
