@@ -14,7 +14,14 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@drizzle/db": [
+        "../drizzle/src/db/index.ts"
+      ],
+      "@drizzle/db/*": [
+        "../drizzle/src/db/*"
+      ]
+    }
   },
   "exclude": [
     "node_modules",

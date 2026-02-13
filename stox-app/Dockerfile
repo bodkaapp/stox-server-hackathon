@@ -22,31 +22,32 @@ RUN pnpm install
 COPY drizzle/ ./drizzle/
 COPY stox-app/ ./stox-app/
 
-# @drizzle/dbとstox-appをビルド
+# @drizzle/dbとstox-appをビルド・バンドル
 RUN pnpm --filter @drizzle/db build
-RUN pnpm --filter stox-app build
+
+# esbuild で stox-app と drizzle を1つのファイルにバンドルします
+# --external:pg を指定して、接続ライブラリのみ外部（node_modules）に残します
+RUN pnpm --filter stox-app exec esbuild src/index.ts --bundle --platform=node --target=node24 --outfile=/app/index.js --external:pg
 
 # -----------------
 # Runner Stage
 # -----------------
-FROM base AS runner
+FROM node:24-slim AS runner
 WORKDIR /app
 
-# 本番用依存関係のインストール準備
+# 本番用依存関係のインストール（pg等の外部ライブラリ用）
 COPY --from=builder /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
 COPY --from=builder /app/stox-app/package.json ./stox-app/package.json
 COPY --from=builder /app/drizzle/package.json ./drizzle/package.json
 
-# 本番用依存関係のみをインストール（workspaceのリンクが作成されます）
 RUN corepack enable && corepack prepare pnpm@latest --activate
-RUN pnpm install --prod
+# stox-appが必要とする本番依存関係のみをインストール
+RUN pnpm install --prod --filter stox-app
 
-# 各パッケージのビルド成果物をコピー
-# これにより symlink 経由で drizzle の成果物が正しく参照されます
-COPY --from=builder /app/stox-app/dist ./stox-app/dist
-COPY --from=builder /app/drizzle/dist ./drizzle/dist
+# バンドルされた単一ファイルをコピー
+COPY --from=builder /app/index.js ./index.js
 
 EXPOSE 8080
 
-# 実行（tsconfigの修正によりフラットな dist/index.js になっています）
-CMD ["node", "stox-app/dist/index.js"]
+# 単一ファイルを起動
+CMD ["node", "index.js"]
