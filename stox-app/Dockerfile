@@ -26,28 +26,24 @@ COPY stox-app/ ./stox-app/
 RUN pnpm --filter @drizzle/db build
 RUN pnpm --filter stox-app build
 
+# stox-appを本番環境用に分離してデプロイ準備
+# --prod で本番用依存関係のみを抽出し、workspaceの依存関係もコピーされます
+RUN pnpm --filter stox-app --prod deploy /app/out
+
 # -----------------
 # Runner Stage
 # -----------------
 FROM base AS runner
 WORKDIR /app
 
-# 必要な設定ファイルと本番用依存関係をコピー
-# `COPY --from=builder` を使って、builder環境からファイルを持ってくる
-COPY --from=builder /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
-COPY --from=builder /app/drizzle/package.json ./drizzle/package.json
-COPY --from=builder /app/stox-app/package.json ./stox-app/package.json
-
-# 本番依存関係のみをインストール
-RUN corepack enable && corepack prepare pnpm@latest --activate
-RUN pnpm install --prod
-
-# ビルド成果物をコピー
-# パス解決（ESMの認識とnode_modulesの探索）を確実にするため、各パッケージのディレクトリ内に配置します
-COPY --from=builder /app/stox-app/dist ./stox-app/dist
-COPY --from=builder /app/drizzle/dist ./drizzle/dist
+# ビルド成果物と本番用依存関係をコピー
+COPY --from=builder /app/out /app
+# ビルド済みの成果物を正しい相対パスに配置するため、stox-app配下のdistを上書きコピー
+COPY --from=builder /app/stox-app/dist /app/dist
 
 EXPOSE 8080
 
-# 修正された実行パス：パッケージディレクトリ配下から実行することで stox-app/package.json (type: module) が認識されます
-CMD ["node", "/app/stox-app/dist/stox-app/src/index.js"]
+# pnpm deploy によって isolated された環境では、/app/package.json が stox-app のものになり、
+# 依存関係も /app/node_modules に配置されます。
+# 成果物の内部構造（dist/stox-app/src/...）に合わせて実行します。
+CMD ["node", "/app/dist/stox-app/src/index.js"]
