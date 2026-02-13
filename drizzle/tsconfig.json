@@ -8,10 +8,17 @@
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
     "outDir": "./dist",
+    "rootDir": "./src",
     "declaration": true,
     "sourceMap": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

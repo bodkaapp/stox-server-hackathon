@@ -12,15 +12,9 @@
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "outDir": "./dist",
+    "rootDir": "./src",
     "baseUrl": ".",
-    "paths": {
-      "@drizzle/db": [
-        "../drizzle/src/db/index.ts"
-      ],
-      "@drizzle/db/*": [
-        "../drizzle/src/db/*"
-      ]
-    }
+    "paths": {}
   },
   "exclude": [
     "node_modules",
