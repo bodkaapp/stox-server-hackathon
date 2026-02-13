@@ -25,28 +25,37 @@ async function main() {
         process.exit(1);
     }
 
-    // デバッグ用：接続文字列の構成を表示（パスワードは隠す）
-    try {
-        const parsedUrl = new URL(connectionString);
-        console.log(`Connecting to: ${parsedUrl.protocol}//${parsedUrl.username}:****@${parsedUrl.host}${parsedUrl.pathname}${parsedUrl.search}`);
-    } catch (e) {
-        console.log("Connecting with a non-URL format connection string");
-    }
+    // デバッグ用：接続文字列の一部を表示（パスワードは隠す）
+    const maskedConn = connectionString.replace(/:([^@]+)@/, ":****@");
+    console.log(`Connecting with: ${maskedConn}`);
 
     const poolConfig: pg.PoolConfig = {
         connectionString,
     };
 
     // Cloud SQL (Unix Socket) 対応の明示化
-    if (connectionString.includes("/cloudsql/")) {
-        try {
-            const url = new URL(connectionString);
-            const hostParam = url.searchParams.get("host");
-            if (hostParam && hostParam.startsWith("/cloudsql/")) {
-                console.log(`Using Unix socket: ${hostParam}`);
-                poolConfig.host = hostParam;
+    // new URL() は @/ という形式（ホスト空）をパースできない場合があるため、
+    // ダミーのホストを補完してパースを試みる
+    try {
+        const urlToParse = connectionString.includes("@/")
+            ? connectionString.replace("@/", "@localhost/")
+            : connectionString;
+        const url = new URL(urlToParse);
+        const hostParam = url.searchParams.get("host");
+
+        if (hostParam && hostParam.startsWith("/cloudsql/")) {
+            console.log(`Detected Unix socket in query param: ${hostParam}`);
+            poolConfig.host = hostParam;
+        } else if (connectionString.includes("/cloudsql/")) {
+            // クエリパラメータにないが文字列に含まれる場合の予備的な抽出
+            const match = connectionString.match(/host=([^&]+)/);
+            if (match && match[1].startsWith("/cloudsql/")) {
+                console.log(`Extracted Unix socket from string: ${match[1]}`);
+                poolConfig.host = match[1];
             }
-        } catch (e) { }
+        }
+    } catch (e) {
+        console.log("Failed to parse connection string for socket path enhancement, using raw string");
     }
 
     const pool = new pg.Pool(poolConfig);
