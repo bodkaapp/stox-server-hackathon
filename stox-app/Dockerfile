@@ -43,10 +43,11 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN pnpm install --prod
 
 # ビルド成果物をコピー
-# tscがモノレポ構造を維持して出力するため、パスが深くなっています
-COPY --from=builder /app/stox-app/dist /app/dist
+# パス解決（ESMの認識とnode_modulesの探索）を確実にするため、各パッケージのディレクトリ内に配置します
+COPY --from=builder /app/stox-app/dist ./stox-app/dist
+COPY --from=builder /app/drizzle/dist ./drizzle/dist
 
 EXPOSE 8080
 
-# 実際の出力パスに合わせて実行
-CMD ["node", "/app/dist/stox-app/src/index.js"]
+# 修正された実行パス：パッケージディレクトリ配下から実行することで stox-app/package.json (type: module) が認識されます
+CMD ["node", "/app/stox-app/dist/stox-app/src/index.js"]
