@@ -1,5 +1,6 @@
 # Stage 1: Builder
 FROM node:24 AS base
+RUN corepack enable
 
 FROM base AS deps
 
