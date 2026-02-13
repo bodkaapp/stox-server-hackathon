@@ -10,9 +10,10 @@ RUN corepack enable
 # pnpmワークスペースの設定ファイルをコピー
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# 各パッケージのpackage.jsonをコピー
+# 各パッケージのpackage.jsonをコピー（ワークスペースの整合性のためにすべて必要）
 COPY admin-app/package.json ./admin-app/package.json
 COPY drizzle/package.json ./drizzle/package.json
+COPY stox-app/package.json ./stox-app/package.json
 
 # 依存関係をインストール
 RUN pnpm install
@@ -48,10 +49,14 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # standaloneビルドから必要なファイルをコピー
+# モノレポの場合、standalone の中身はディレクトリ構造を反映しています
 COPY --from=builder /app/admin-app/.next/standalone ./
-COPY --from=builder /app/admin-app/public ./public
-COPY --from=builder /app/admin-app/.next/static ./.next/static
+COPY --from=builder /app/admin-app/public ./admin-app/public
+COPY --from=builder /app/admin-app/.next/static ./admin-app/.next/static
 
+# Cloud Run は 8080 ポートを期待します
+ENV PORT=8080
 EXPOSE 8080
 
-CMD ["node", "server.js"]
+# standaloneモードでは、server.js はサブディレクトリ内に配置されます
+CMD ["node", "admin-app/server.js"]
