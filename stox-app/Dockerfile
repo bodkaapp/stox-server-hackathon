@@ -14,13 +14,16 @@ COPY admin-app/package.json ./admin-app/package.json
 COPY drizzle/package.json ./drizzle/package.json
 COPY stox-app/package.json ./stox-app/package.json
 
-# pnpmを有効化し、依存関係をインストール
+# pnpmを有効化し、依存関係を一度インストール（キャッシュ用）
 RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN pnpm install
 
 # ソースコードをコピー
 COPY drizzle/ ./drizzle/
 COPY stox-app/ ./stox-app/
+
+# ワークスペース全体の整合性を確保するため、ソースコピー後に再度リンクを確認
+RUN pnpm install
 
 # @drizzle/dbとstox-appをビルド・バンドル
 RUN pnpm --filter @drizzle/db build
@@ -36,6 +39,15 @@ RUN pnpm --filter stox-app exec esbuild src/index.ts \
     --outfile=/app/index.cjs \
     --external:pg-native
 
+# マイグレーションスクリプトもバンドル
+RUN pnpm --filter stox-app exec esbuild ../drizzle/src/db/migrate.ts \
+    --bundle \
+    --platform=node \
+    --target=node24 \
+    --format=cjs \
+    --outfile=/app/migrate.cjs \
+    --external:pg-native
+
 # -----------------
 # Runner Stage
 # -----------------
@@ -44,6 +56,10 @@ WORKDIR /app
 
 # すべての依存関係がバンドルされた単一ファイルをコピー
 COPY --from=builder /app/index.cjs ./index.cjs
+COPY --from=builder /app/migrate.cjs ./migrate.cjs
+
+# マイグレーション用のSQLファイルをコピー
+COPY --from=builder /app/drizzle/*.sql ./drizzle/
 
 # 本番環境では個別のライブラリインストールもソースフォルダも不要です。
 # (index.cjs がすべてのロジックを保持しているため)

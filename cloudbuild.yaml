@@ -20,6 +20,35 @@ steps:
     waitFor: ["Build stox-app image"]
 
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    id: "Update Migration Job"
+    entrypoint: gcloud
+    args:
+      - "run"
+      - "jobs"
+      - "update"
+      - "stox-db-migrate"
+      - "--image=asia-northeast1-docker.pkg.dev/$PROJECT_ID/stox-cloud-run-images/stox-app:$COMMIT_SHA"
+      - "--region=asia-northeast1"
+      - "--service-account=stox-server@point-shopping-list.iam.gserviceaccount.com"
+      - "--add-cloudsql-instances=point-shopping-list:asia-northeast1:stox-server-db"
+      - "--set-secrets=DATABASE_URL=stox-DATABASE_URL_SECRET:latest"
+      - "--command=node"
+      - "--args=migrate.cjs"
+    waitFor: ["Push stox-app image"]
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    id: "Run Migration Job"
+    entrypoint: gcloud
+    args:
+      - "run"
+      - "jobs"
+      - "execute"
+      - "stox-db-migrate"
+      - "--region=asia-northeast1"
+      - "--wait"
+    waitFor: ["Update Migration Job"]
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: "Deploy stox-app to Cloud Run"
     entrypoint: gcloud
     args:
@@ -34,7 +63,7 @@ steps:
       - "--service-account=stox-server@point-shopping-list.iam.gserviceaccount.com"
       - "--add-cloudsql-instances=point-shopping-list:asia-northeast1:stox-server-db"
       - "--set-secrets=DATABASE_URL=stox-DATABASE_URL_SECRET:latest"
-    waitFor: ["Push stox-app image"]
+    waitFor: ["Run Migration Job"]
 
   # ---------------------------------
   # Build and Deploy admin-app
