@@ -10,18 +10,20 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # 各パッケージのpackage.jsonをコピー
+# COPY admin-app/package.json ./admin-app/package.json
 COPY drizzle/package.json ./drizzle/package.json
 COPY stox-app/package.json ./stox-app/package.json
 
 # pnpmを有効化し、依存関係をインストール
 RUN corepack enable && corepack prepare pnpm@latest --activate
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 # ソースコードをコピー
 COPY drizzle/ ./drizzle/
 COPY stox-app/ ./stox-app/
 
-# stox-appのみをビルド
+# @drizzle/dbとstox-appをビルド
+RUN pnpm --filter @drizzle/db build
 RUN pnpm --filter stox-app build
 
 # -----------------
@@ -38,7 +40,7 @@ COPY --from=builder /app/stox-app/package.json ./stox-app/package.json
 
 # 本番依存関係のみをインストール
 RUN corepack enable && corepack prepare pnpm@latest --activate
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod
 
 # ビルド成果物をコピー
 COPY --from=builder /app/stox-app/dist ./dist

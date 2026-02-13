@@ -10,6 +10,9 @@ importers:
 
   admin-app:
     dependencies:
+      '@drizzle/db':
+        specifier: workspace:^
+        version: link:../drizzle
       dotenv:
         specifier: ^17.2.4
         version: 17.2.4
@@ -78,6 +81,9 @@ importers:
         specifier: ^8.18.0
         version: 8.18.0
     devDependencies:
+      '@types/node':
+        specifier: ^20.11.17
+        version: 20.19.33
       '@types/pg':
         specifier: ^8.16.0
         version: 8.16.0
@@ -90,6 +96,9 @@ importers:
 
   stox-app:
     dependencies:
+      '@drizzle/db':
+        specifier: workspace:^
+        version: link:../drizzle
       '@hono/node-server':
         specifier: ^1.19.9
         version: 1.19.9(hono@4.11.9)

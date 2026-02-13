@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import app from "./index.js";
-import { db } from "@drizzle/db/index"; // 修正: パスを更新
+import { db } from "@drizzle/db";
 
 // dbモジュールのモック
-vi.mock("@drizzle/db/index", () => {
-  // 修正: パスを更新
+vi.mock("@drizzle/db", () => {
   const mockInsert = vi.fn().mockImplementation(() => ({
     values: vi.fn().mockReturnThis(),
     returning: vi.fn().mockResolvedValue([

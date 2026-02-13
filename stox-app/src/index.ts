@@ -1,6 +1,6 @@
 import { serve } from "@hono/node-server";
 import { Hono, type Context } from "hono";
-import { db } from "@drizzle/db/index";
+import { db } from "@drizzle/db";
 import { recipes } from "@drizzle/db/schema";
 
 const app = new Hono();

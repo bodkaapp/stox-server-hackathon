@@ -1,27 +1,25 @@
-# Stage 1: Builder
-FROM node:24 AS base
-RUN corepack enable
-
-FROM base AS deps
-
+# -----------------
+# Builder Stage
+# -----------------
+FROM node:24 AS builder
 WORKDIR /app
 
-COPY admin-app/package*.json ./
-RUN npm install
-# COPY package.json package-lock.json ./
-# RUN npm ci
+# pnpmを有効化
+RUN corepack enable
 
-FROM deps AS builder
-COPY --from=deps /app/node_modules ./node_modules
+# pnpmワークスペースの設定ファイルをコピー
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# Copy specific files and directories
-COPY admin-app/app ./app
-COPY admin-app/public ./public
-COPY admin-app/next.config.ts ./next.config.ts
-COPY admin-app/postcss.config.mjs ./postcss.config.mjs
-COPY admin-app/eslint.config.mjs ./eslint.config.mjs
-COPY admin-app/tsconfig.json ./tsconfig.json
-COPY drizzle ./drizzle
+# 各パッケージのpackage.jsonをコピー
+COPY admin-app/package.json ./admin-app/package.json
+COPY drizzle/package.json ./drizzle/package.json
+
+# 依存関係をインストール
+RUN pnpm install
+
+# ソースコードをコピー
+COPY admin-app/ ./admin-app/
+COPY drizzle/ ./drizzle/
 
 # Add ARG and ENV for Firebase variables
 ARG NEXT_PUBLIC_FIREBASE_API_KEY
@@ -37,23 +35,23 @@ ENV NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=$NEXT_PUBLIC_FIREBASE_MESSAGING_SEN
 ARG NEXT_PUBLIC_FIREBASE_APP_ID
 ENV NEXT_PUBLIC_FIREBASE_APP_ID=$NEXT_PUBLIC_FIREBASE_APP_ID
 
-RUN npm run build
+# drizzleとadmin-appをビルド
+RUN pnpm --filter drizzle build
+RUN pnpm --filter admin-app build
 
-FROM base AS runner
-
+# -----------------
+# Runner Stage
+# -----------------
+FROM node:24 AS runner
 WORKDIR /app
 
-# Copy necessary files from the builder stage for standalone output
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/public ./public
+ENV NODE_ENV=production
 
-# The next.config.ts is often not needed at runtime for standalone builds,
-# but keeping it for now if there are any runtime-specific configurations.
-# COPY --from=builder /app/next.config.ts ./next.config.ts
+# standaloneビルドから必要なファイルをコピー
+COPY --from=builder /app/admin-app/.next/standalone ./
+COPY --from=builder /app/admin-app/public ./public
+COPY --from=builder /app/admin-app/.next/static ./.next/static
 
 EXPOSE 8080
-
-ENV NODE_ENV=production
-USER node
 
 CMD ["node", "server.js"]
