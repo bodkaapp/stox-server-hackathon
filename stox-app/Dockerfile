@@ -58,8 +58,8 @@ WORKDIR /app
 COPY --from=builder /app/index.cjs ./index.cjs
 COPY --from=builder /app/migrate.cjs ./migrate.cjs
 
-# マイグレーション用のSQLファイルをコピー
-COPY --from=builder /app/drizzle/*.sql ./drizzle/
+# マイグレーション用の管理ファイル（SQLやmetaフォルダ）をすべてコピー
+COPY --from=builder /app/drizzle/ ./drizzle/
 
 # 本番環境では個別のライブラリインストールもソースフォルダも不要です。
 # (index.cjs がすべてのロジックを保持しているため)

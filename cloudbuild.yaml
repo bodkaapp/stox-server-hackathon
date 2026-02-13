@@ -32,6 +32,7 @@ steps:
       - "--service-account=stox-server@point-shopping-list.iam.gserviceaccount.com"
       - "--set-cloudsql-instances=point-shopping-list:asia-northeast1:stox-server-db"
       - "--set-secrets=DATABASE_URL=stox-DATABASE_URL_SECRET:latest"
+      - "--set-env-vars=NODE_ENV=production"
       - "--command=node"
       - "--args=migrate.cjs"
     waitFor: ["Push stox-app image"]

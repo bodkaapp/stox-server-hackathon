@@ -5,8 +5,16 @@ import path from "path";
 import { fileURLToPath } from "url";
 import "dotenv/config";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// バンドル（CJS）環境と開発（ESM）環境の両方に対応したパス解決
+const getDirname = () => {
+    try {
+        // @ts-ignore
+        if (typeof __dirname !== "undefined") return __dirname;
+    } catch (e) { }
+    return path.dirname(fileURLToPath(import.meta.url));
+};
+
+const _dirname = getDirname();
 
 async function main() {
     console.log("Running migrations...");
@@ -18,7 +26,12 @@ async function main() {
     const db = drizzle(pool);
 
     // マイグレーション用SQLファイルの場所を指定
-    const migrationsFolder = process.env.MIGRATIONS_FOLDER || path.resolve(__dirname, "../../");
+    // バンドル後は migrate.cjs と同じ階層の drizzle フォルダ、
+    // 開発時は drizzle/src/db から見た ../../ を参照
+    const migrationsFolder = process.env.MIGRATIONS_FOLDER ||
+        (process.env.NODE_ENV === "production"
+            ? path.resolve(_dirname, "drizzle")
+            : path.resolve(_dirname, "../../"));
     console.log(`Using migrations folder: ${migrationsFolder}`);
 
     try {
