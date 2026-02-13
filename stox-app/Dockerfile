@@ -43,8 +43,10 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN pnpm install --prod
 
 # ビルド成果物をコピー
-COPY --from=builder /app/stox-app/dist ./dist
+# tscがモノレポ構造を維持して出力するため、パスが深くなっています
+COPY --from=builder /app/stox-app/dist /app/dist
 
 EXPOSE 8080
 
-CMD ["node", "./dist/index.js"]
+# 実際の出力パスに合わせて実行
+CMD ["node", "/app/dist/stox-app/src/index.js"]
