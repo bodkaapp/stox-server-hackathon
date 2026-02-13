@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../AuthProvider";
 
 type Recipe = {
@@ -11,17 +11,20 @@ type Recipe = {
   createdAt: string;
 };
 
-export default function RecipesPage() {
+// This component fetches and displays recipes, and handles pagination logic.
+// It uses useSearchParams, so it needs to be wrapped in a Suspense boundary.
+function RecipesList() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const [totalRecipes, setTotalRecipes] = useState(0);
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(totalRecipes / itemsPerPage);
 
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const totalPages = Math.ceil(totalRecipes / itemsPerPage);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -75,11 +78,19 @@ export default function RecipesPage() {
     );
   }
 
+  // Pushes a new URL to the router to change the page
+  const handlePageChange = (page: number) => {
+    router.push(`/recipes?page=${page}`);
+  };
+
   return (
     <div className="flex min-h-screen flex-col items-center p-8 bg-zinc-50 font-sans dark:bg-black">
       <h1 className="text-4xl font-bold mb-8 text-black dark:text-zinc-50">
-        Recipes List
+        レシピ一覧
       </h1>
+      <p className="text-lg text-zinc-700 dark:text-zinc-300 mb-4">
+        ユーザーの入力したレシピURLの一覧です。
+      </p>
       {recipes.length === 0 ? (
         <p className="text-lg text-zinc-700 dark:text-zinc-300">
           No recipes found.
@@ -124,15 +135,15 @@ export default function RecipesPage() {
           </table>
           <div className="flex justify-center mt-4 space-x-2">
             <button
-              onClick={() => setCurrentPage(1)}
-              disabled={totalPages == 1 || currentPage === 1}
+              onClick={() => handlePageChange(1)}
+              disabled={totalPages <= 1 || currentPage === 1}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
             >
               First
             </button>
             <button
-              onClick={() => setCurrentPage(currentPage - 1)}
-              disabled={totalPages == 1 || currentPage === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={totalPages <= 1 || currentPage === 1}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
             >
               Previous
@@ -141,15 +152,15 @@ export default function RecipesPage() {
               Page {currentPage} of {totalPages}
             </span>
             <button
-              onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={totalPages == 1 || currentPage === totalPages}
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={totalPages <= 1 || currentPage === totalPages}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
             >
               Next
             </button>
             <button
-              onClick={() => setCurrentPage(totalPages)}
-              disabled={totalPages == 1 || currentPage === totalPages}
+              onClick={() => handlePageChange(totalPages)}
+              disabled={totalPages <= 1 || currentPage === totalPages}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
             >
               Last
@@ -158,5 +169,16 @@ export default function RecipesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// This is the main page component.
+// It wraps the RecipesList component in a Suspense boundary, which is required
+// when a component uses useSearchParams.
+export default function RecipesPage() {
+  return (
+    <Suspense>
+      <RecipesList />
+    </Suspense>
   );
 }
